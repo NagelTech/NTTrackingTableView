@@ -75,7 +75,8 @@
     }
 
 //    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Insert Row" style:UIBarButtonItemStylePlain target:self action:@selector(insertRow)];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Insert Section" style:UIBarButtonItemStylePlain target:self action:@selector(insertSection)];
+//    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Insert Section" style:UIBarButtonItemStylePlain target:self action:@selector(insertSection)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Resize Row" style:UIBarButtonItemStylePlain target:self action:@selector(resizeRow)];
 
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Delete Rows" style:UIBarButtonItemStylePlain target:self action:@selector(deleteRows)];
 }
@@ -168,6 +169,19 @@
                 [self deleteIndexPath:[NSIndexPath indexPathForRow:index inSection:section]];
         }
     }];
+
+    [self.tableView endUpdates];
+}
+
+
+- (void)resizeRow
+{
+    [self.tableView beginUpdates];
+
+    NSMutableArray *items = _sections[1];
+    CellInfo *cellInfo = items[1];
+
+    cellInfo.height += 50;
 
     [self.tableView endUpdates];
 }

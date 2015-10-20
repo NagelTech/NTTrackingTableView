@@ -303,7 +303,7 @@
             {
                 // Handle deleted rows...
 
-                while (deletedRow && deletedRow.section == beforeSection && deletedRow.row == beforeRow)
+                while (deletedRow && deletedRow.section == beforeSection && deletedRow.row == beforeRow && [deletedRow compare:_beforeAnchorIndexPath] < 0)
                 {
                     CGFloat beforeRowHeight = [_tableView rectForRowAtIndexPath:deletedRow].size.height;
 
@@ -345,8 +345,8 @@
 
                     if (beforeRowHeight != afterRowHeight)
                     {
-                        LOG(@"%zd/%zd(%f): Resized from %zd/%zd(%f) = %f", afterSection, afterRow, afterRowHeight, beforeSection, beforeRow, beforeRowHeight, beforeRowHeight - afterRowHeight);
-                        delta += beforeRowHeight - afterRowHeight;
+                        LOG(@"%zd/%zd(%f): Resized from %zd/%zd(%f) = %f", afterSection, afterRow, afterRowHeight, beforeSection, beforeRow, beforeRowHeight, afterRowHeight - beforeRowHeight);
+                        delta += afterRowHeight - beforeRowHeight;
                     }
                     else
                     {
