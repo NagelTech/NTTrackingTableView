@@ -1,5 +1,5 @@
 //
-//  ViewController.h
+//  NTTrackingTableView.h
 //  NTTrackingTableViewSample
 //
 //  Created by Ethan Nagel on 10/17/15.
@@ -8,7 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@interface NTTrackingTableView : UITableView
+
+
+@property (nonatomic) IBInspectable BOOL automaticallyAdjustsContentOffset;
 
 @end
-

@@ -13,6 +13,7 @@
 		F07BFEDD1BD3199400853307 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F07BFEDB1BD3199400853307 /* Main.storyboard */; };
 		F07BFEDF1BD3199400853307 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F07BFEDE1BD3199400853307 /* Assets.xcassets */; };
 		F07BFEE21BD3199400853307 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F07BFEE01BD3199400853307 /* LaunchScreen.storyboard */; };
+		F07BFF071BD31BC800853307 /* NTTrackingTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = F07BFF061BD31BC800853307 /* NTTrackingTableView.m */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,8 @@
 		F07BFEDE1BD3199400853307 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F07BFEE11BD3199400853307 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F07BFEE31BD3199400853307 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F07BFF051BD31BC800853307 /* NTTrackingTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTTrackingTableView.h; sourceTree = "<group>"; };
+		F07BFF061BD31BC800853307 /* NTTrackingTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTTrackingTableView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +45,7 @@
 		F07BFEC61BD3199400853307 = {
 			isa = PBXGroup;
 			children = (
+				F07BFF031BD31BA600853307 /* Pod */,
 				F07BFED11BD3199400853307 /* NTTrackingTableViewSample */,
 				F07BFED01BD3199400853307 /* Products */,
 			);
@@ -77,6 +81,23 @@
 				F07BFED31BD3199400853307 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		F07BFF031BD31BA600853307 /* Pod */ = {
+			isa = PBXGroup;
+			children = (
+				F07BFF041BD31BA600853307 /* Classes */,
+			);
+			path = Pod;
+			sourceTree = "<group>";
+		};
+		F07BFF041BD31BA600853307 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				F07BFF051BD31BC800853307 /* NTTrackingTableView.h */,
+				F07BFF061BD31BC800853307 /* NTTrackingTableView.m */,
+			);
+			path = Classes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -149,6 +170,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F07BFF071BD31BC800853307 /* NTTrackingTableView.m in Sources */,
 				F07BFEDA1BD3199400853307 /* ViewController.m in Sources */,
 				F07BFED71BD3199400853307 /* AppDelegate.m in Sources */,
 				F07BFED41BD3199400853307 /* main.m in Sources */,
@@ -298,6 +320,7 @@
 				F07BFEE81BD3199400853307 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
