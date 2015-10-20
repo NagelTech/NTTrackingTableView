@@ -14,7 +14,9 @@
 		F07BFEDF1BD3199400853307 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F07BFEDE1BD3199400853307 /* Assets.xcassets */; };
 		F07BFEE21BD3199400853307 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F07BFEE01BD3199400853307 /* LaunchScreen.storyboard */; };
 		F07BFF071BD31BC800853307 /* NTTrackingTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = F07BFF061BD31BC800853307 /* NTTrackingTableView.m */; settings = {ASSET_TAGS = (); }; };
-		F0D3544D1BD702F9006FB406 /* NTTrackingTableView.podspec in Resources */ = {isa = PBXBuildFile; fileRef = F0D3544C1BD702F9006FB406 /* NTTrackingTableView.podspec */; settings = {ASSET_TAGS = (); }; };
+		F0D354511BD70700006FB406 /* NTTrackingTableView.podspec in Resources */ = {isa = PBXBuildFile; fileRef = F0D3544E1BD70700006FB406 /* NTTrackingTableView.podspec */; settings = {ASSET_TAGS = (); }; };
+		F0D354521BD70700006FB406 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = F0D3544F1BD70700006FB406 /* LICENSE */; settings = {ASSET_TAGS = (); }; };
+		F0D354531BD70700006FB406 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = F0D354501BD70700006FB406 /* README.md */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,7 +32,9 @@
 		F07BFEE31BD3199400853307 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F07BFF051BD31BC800853307 /* NTTrackingTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTTrackingTableView.h; sourceTree = "<group>"; };
 		F07BFF061BD31BC800853307 /* NTTrackingTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTTrackingTableView.m; sourceTree = "<group>"; };
-		F0D3544C1BD702F9006FB406 /* NTTrackingTableView.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NTTrackingTableView.podspec; sourceTree = "<group>"; };
+		F0D3544E1BD70700006FB406 /* NTTrackingTableView.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NTTrackingTableView.podspec; sourceTree = SOURCE_ROOT; };
+		F0D3544F1BD70700006FB406 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = SOURCE_ROOT; };
+		F0D354501BD70700006FB406 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +84,9 @@
 		F07BFED21BD3199400853307 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				F0D3544E1BD70700006FB406 /* NTTrackingTableView.podspec */,
+				F0D3544F1BD70700006FB406 /* LICENSE */,
+				F0D354501BD70700006FB406 /* README.md */,
 				F07BFED31BD3199400853307 /* main.m */,
 			);
 			name = "Supporting Files";
@@ -88,7 +95,6 @@
 		F07BFF031BD31BA600853307 /* Pod */ = {
 			isa = PBXGroup;
 			children = (
-				F0D3544C1BD702F9006FB406 /* NTTrackingTableView.podspec */,
 				F07BFF041BD31BA600853307 /* Classes */,
 			);
 			path = Pod;
@@ -163,7 +169,8 @@
 				F07BFEE21BD3199400853307 /* LaunchScreen.storyboard in Resources */,
 				F07BFEDF1BD3199400853307 /* Assets.xcassets in Resources */,
 				F07BFEDD1BD3199400853307 /* Main.storyboard in Resources */,
-				F0D3544D1BD702F9006FB406 /* NTTrackingTableView.podspec in Resources */,
+				F0D354511BD70700006FB406 /* NTTrackingTableView.podspec in Resources */,
+				F0D354521BD70700006FB406 /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,6 +183,7 @@
 			files = (
 				F07BFF071BD31BC800853307 /* NTTrackingTableView.m in Sources */,
 				F07BFEDA1BD3199400853307 /* ViewController.m in Sources */,
+				F0D354531BD70700006FB406 /* README.md in Sources */,
 				F07BFED71BD3199400853307 /* AppDelegate.m in Sources */,
 				F07BFED41BD3199400853307 /* main.m in Sources */,
 			);
