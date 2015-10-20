@@ -9,6 +9,9 @@
 #import "NTTrackingTableView.h"
 
 
+#define LOG(...) NSLog(__VA_ARGS__)
+
+
 @interface NTTrackingTableViewTransaction : NSObject
 
 @property(nonatomic,readonly) NSIndexPath *beforeAnchorIndexPath;
@@ -31,6 +34,8 @@
     NSMutableArray<NSIndexPath *> *_deletedRows;
     NSMutableArray<NSNumber *> *_insertedSections;
     NSMutableArray<NSNumber *> *_deletedSections;
+
+    BOOL _delegateRespondsToHeightForRowAtIndexPath;
 }
 
 
@@ -45,11 +50,13 @@
         _deletedSections = [[NSMutableArray alloc] init];
         _beforeAnchorIndexPath = [tableView.indexPathsForVisibleRows.firstObject copy];
         _afterAnchorIndexPath = _beforeAnchorIndexPath;
+        _delegateRespondsToHeightForRowAtIndexPath = [tableView.delegate respondsToSelector:@selector(tableView:cellForRowAtIndexPath:)];
     }
 
     return self;
 }
 
+#pragma mark - Insert/Delete items
 
 - (void)insertRowsAtIndexPaths:(NSArray *)indexPaths
 {
@@ -124,17 +131,106 @@
     }
 }
 
+#pragma mark - "After" (dataSource/Delegate) height calculations
+
+
+- (CGFloat)afterRowHeightForSection:(NSInteger)afterSection row:(NSInteger)afterRow
+{
+    CGFloat height =  0;
+
+    if (_delegateRespondsToHeightForRowAtIndexPath)
+    {
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:afterRow inSection:afterSection];
+        height = [_tableView.delegate tableView:_tableView heightForRowAtIndexPath:indexPath];
+    }
+    else
+        height = _tableView.rowHeight;
+
+    NSAssert(height != UITableViewAutomaticDimension, @"UITableViewAutomaticDimension is not supported by NTTrackingTableView");
+
+    return height;
+}
+
+
+- (CGFloat)afterSectionHeaderHeightForSection:(NSInteger)afterSection
+{
+    CGFloat height;
+
+    if ([_tableView.delegate respondsToSelector:@selector(tableView:heightForHeaderInSection:)])
+        height = [_tableView.delegate tableView:_tableView heightForHeaderInSection:afterSection];
+
+    else if ([_tableView.dataSource respondsToSelector:@selector(tableView:titleForHeaderInSection:)])
+    {
+        NSString *title = [_tableView.dataSource tableView:_tableView titleForHeaderInSection:afterSection];
+
+        height = (title.length) ? _tableView.sectionHeaderHeight : 0;
+    }
+
+    else
+        height = 0;
+
+    NSAssert(height != UITableViewAutomaticDimension, @"UITableViewAutomaticDimension is not supported by NTTrackingTableView");
+
+    return height;
+}
+
+- (CGFloat)afterSectionFooterHeightForSection:(NSInteger)afterSection
+{
+    CGFloat height;
+
+    if ([_tableView.delegate respondsToSelector:@selector(tableView:heightForFooterInSection:)])
+        height = [_tableView.delegate tableView:_tableView heightForFooterInSection:afterSection];
+
+    else if ([_tableView.dataSource respondsToSelector:@selector(tableView:titleForFooterInSection:)])
+    {
+        NSString *title = [_tableView.dataSource tableView:_tableView titleForFooterInSection:afterSection];
+
+        height = (title.length) ? _tableView.sectionFooterHeight : 0;
+    }
+
+    else
+        height = 0;
+
+    NSAssert(height != UITableViewAutomaticDimension, @"UITableViewAutomaticDimension is not supported by NTTrackingTableView");
+    
+    return height;
+}
+
+- (CGFloat)afterSectionHeightForSection:(NSInteger)afterSection rowCount:(NSInteger)afterRowCount
+{
+    CGFloat height = 0;
+
+    height += [self afterSectionHeaderHeightForSection:afterSection];
+
+    for(NSInteger afterRow=0; afterRow<afterRowCount; ++afterRow)
+        height += [self afterRowHeightForSection:afterSection row:afterRow];
+
+    height += [self afterSectionFooterHeightForSection:afterSection];
+
+    return height;
+}
+
+
+#pragma mark - Delta Calculation
+
 
 - (CGFloat)contentOffsetDelta
 {
-    // Right now the tableView has a cache of the data and the data source
-    // represents the state after the change.
-    // tableView = BEFORE (deletes)
-    // dataSource/delegate = AFTER (inserts)
+    // This can be called when the caller has called endUpdates but *before* we call [super endUpdates].
+    // At this point in time the tableView is using an internal cache of sizes, etc representing the state
+    // "before" any changes. The dataSource/delegate represent the "after" state.
+
+    // This code walks the before and after rows (and sections), noting changes that impact the contentOffset
+    // It only needs to go as far as the afterAnchorIndexPath (which is calculated as inserts/deletes are added
+    // to the transaction.)
+
+    // It will correctly handle inserts/deletes of rows and sections (and moves as an inser/delete) as well as cell resizing.
+
+    // Limitations:
+    //  - Does not support autolayout (UITableViewAutomaticDimension)
+    //  - Does not support headers/footers resizing or appearing/disappearing
 
     CGFloat delta = 0;
-
-    BOOL delegateRespondsToHeightForRowAtIndexPath = [_tableView.delegate respondsToSelector:@selector(tableView:heightForRowAtIndexPath:)];
 
     [_insertedRows sortUsingSelector:@selector(compare:)];
     [_deletedRows sortUsingSelector:@selector(compare:)];
@@ -153,7 +249,7 @@
 
     NSInteger beforeSection = 0;
 
-    for(NSInteger afterSection=0; afterSection<=_afterAnchorIndexPath.section; ++afterSection)
+    for(NSInteger afterSection=0; ; ++afterSection)
     {
         // delete sections...
 
@@ -161,7 +257,7 @@
         {
             CGFloat beforeSectionHeight = [_tableView rectForSection:beforeSection].size.height;
 
-            NSLog(@"%zd(%f): Deleted", beforeSection, beforeSectionHeight);
+            LOG(@"%zd(%f): Deleted", beforeSection, beforeSectionHeight);
 
             delta -= beforeSectionHeight;
 
@@ -169,6 +265,11 @@
 
             ++beforeSection;
         }
+
+        // See if we are done with our after sections
+
+        if (afterSection > _afterAnchorIndexPath.section)
+            break;
 
         // calculate our effective row count...
 
@@ -181,24 +282,11 @@
 
         if (afterSection == insertedSection)
         {
-            CGFloat afterSectionHeight = 0;
-
-            // todo: add size of section headers/footers
-
-            for(NSInteger afterRow=0; afterRow<afterRowCount; ++afterRow)
-            {
-                NSIndexPath *afterIndexPath = [NSIndexPath indexPathForRow:afterRow inSection:afterSection];
-
-                CGFloat afterRowHeight = delegateRespondsToHeightForRowAtIndexPath ? [_tableView.delegate tableView:_tableView heightForRowAtIndexPath:afterIndexPath] : _tableView.rowHeight;
-
-                NSAssert(afterRowHeight != UITableViewAutomaticDimension, @"UITableViewAutomaticDimension is not supported by NTTrackingTableView");
-
-                afterSectionHeight += afterRowHeight;
-            }
+            CGFloat afterSectionHeight = [self afterSectionHeightForSection:afterSection rowCount:afterRowCount];
 
             delta += afterSectionHeight;
 
-            NSLog(@"%zd(%f): Inserted", afterSection, afterSectionHeight);
+            LOG(@"%zd(%f): Inserted", afterSection, afterSectionHeight);
         }
 
         else // updating a section
@@ -207,21 +295,15 @@
 
             NSInteger beforeRow = 0;
 
-            for (NSInteger afterRow=0; afterRow<afterRowCount; ++afterRow)
+            for (NSInteger afterRow=0; ; ++afterRow)
             {
-                NSIndexPath *afterIndexPath = [NSIndexPath indexPathForRow:afterRow inSection:afterSection];
-
-                CGFloat afterRowHeight = delegateRespondsToHeightForRowAtIndexPath ? [_tableView.delegate tableView:_tableView heightForRowAtIndexPath:afterIndexPath] : _tableView.rowHeight;
-
-                NSAssert(afterRowHeight != UITableViewAutomaticDimension, @"UITableViewAutomaticDimension is not supported by NTTrackingTableView");
-
                 // Handle deleted rows...
 
                 while (deletedRow && deletedRow.section == beforeSection && deletedRow.row == beforeRow)
                 {
                     CGFloat beforeRowHeight = [_tableView rectForRowAtIndexPath:deletedRow].size.height;
 
-                    NSLog(@"%zd/%zd(%f): Deleted", beforeSection, beforeRow, beforeRowHeight);
+                    LOG(@"%zd/%zd(%f): Deleted", beforeSection, beforeRow, beforeRowHeight);
 
                     delta -= beforeRowHeight;
 
@@ -229,6 +311,13 @@
 
                     ++beforeRow;
                 }
+
+                // stop if we are done with our "after" rows...
+
+                if (afterRow >= afterRowCount)
+                    break;
+
+                CGFloat afterRowHeight = [self afterRowHeightForSection:afterSection row:afterRow];
 
                 // handle inserted rows...
 
@@ -238,7 +327,7 @@
 
                     delta += afterRowHeight;
 
-                    NSLog(@"%zd/%zd(%f): Inserted", afterSection, afterRow, afterRowHeight);
+                    LOG(@"%zd/%zd(%f): Inserted", afterSection, afterRow, afterRowHeight);
 
                     // get the next insertedRow...
 
@@ -252,33 +341,17 @@
 
                     if (beforeRowHeight != afterRowHeight)
                     {
-                        NSLog(@"%zd/%zd(%f): Resized from %zd/%zd(%f) = %f", afterSection, afterRow, afterRowHeight, beforeSection, beforeRow, beforeRowHeight, beforeRowHeight - afterRowHeight);
+                        LOG(@"%zd/%zd(%f): Resized from %zd/%zd(%f) = %f", afterSection, afterRow, afterRowHeight, beforeSection, beforeRow, beforeRowHeight, beforeRowHeight - afterRowHeight);
                         delta += beforeRowHeight - afterRowHeight;
                     }
                     else
                     {
-                        //NSLog(@"%zd/%zd(%f): No change, was %zd/%zd(%f)", afterSection, afterRow, afterRowHeight, beforeSection, beforeRow, beforeRowHeight);
+                        //LOG(@"%zd/%zd(%f): No change, was %zd/%zd(%f)", afterSection, afterRow, afterRowHeight, beforeSection, beforeRow, beforeRowHeight);
                     }
 
                     ++beforeRow;
                 } // else not inserted
             } // for (afterRow
-
-            // Handle traling deleted rows...
-            // todo: figure out an elegant way to handle this case
-
-            while (deletedRow && deletedRow.section == beforeSection && deletedRow.row == beforeRow)
-            {
-                CGFloat beforeRowHeight = [_tableView rectForRowAtIndexPath:deletedRow].size.height;
-
-                NSLog(@"%zd/%zd(%f): Deleted", beforeSection, beforeRow, beforeRowHeight);
-
-                delta -= beforeRowHeight;
-
-                deletedRow = [deletedRowsEnumerator nextObject];
-
-                ++beforeRow;
-            }
 
             ++beforeSection;
         } // else not inserted section
@@ -287,7 +360,7 @@
 
     // todo: could we have problems with trailing deleted sections?
 
-    NSLog(@"delta = %f", delta);
+    LOG(@"delta = %f", delta);
 
     return delta;
 }
