@@ -230,6 +230,10 @@
     //  - Does not support autolayout (UITableViewAutomaticDimension)
     //  - Does not support headers/footers resizing or appearing/disappearing
 
+    LOG(@"*** calculating offset delta ***");
+    LOG(@"beforeAnchor=%zd/%zd", _beforeAnchorIndexPath.section, _beforeAnchorIndexPath.row);
+    LOG(@"afterAnchor=%zd/%zd", _afterAnchorIndexPath.section, _afterAnchorIndexPath.row);
+
     CGFloat delta = 0;
 
     [_insertedRows sortUsingSelector:@selector(compare:)];
@@ -422,12 +426,42 @@
 
     else
     {
-        [UIView performWithoutAnimation:^{
-            CGPoint contentOffset = CGPointMake(self.contentOffset.x, self.contentOffset.y + delta);
-            self.contentOffset = contentOffset; // important to do it first when decelerating
-            [super endUpdates];
-            self.contentOffset = contentOffset; // important to do it again after in case the contentSize was too small when it was set before
-        }];
+
+#ifdef DEBUG
+
+        if (!self.isDecelerating)
+        {
+            // If we aren't decelerating
+            [UIView performWithoutAnimation:^{
+
+                CGPoint beforePoint = [self convertPoint:[self rectForRowAtIndexPath:_currentTransaction.beforeAnchorIndexPath].origin toView:self.superview];
+
+                [super endUpdates];
+
+                CGPoint afterPoint = [self convertPoint:[self rectForRowAtIndexPath:_currentTransaction.afterAnchorIndexPath].origin toView:self.superview];
+
+                CGFloat actualDelta = afterPoint.y - beforePoint.y;
+
+                if (delta != actualDelta)
+                    NSLog(@"UH OH contentOffsetDelta returned %f but value should have been %f (off by %f)", delta, actualDelta, actualDelta - delta);
+
+                CGPoint contentOffset = CGPointMake(self.contentOffset.x, self.contentOffset.y + delta);
+                self.contentOffset = contentOffset;
+
+            }];
+        }
+        else
+
+#endif
+
+        {
+            [UIView performWithoutAnimation:^{
+                CGPoint contentOffset = CGPointMake(self.contentOffset.x, self.contentOffset.y + delta);
+                self.contentOffset = contentOffset; // important to do it first when decelerating
+                [super endUpdates];
+                self.contentOffset = contentOffset; // important to do it again after in case the contentSize was too small when it was set before
+            }];
+        }
     }
 
     // debugging
