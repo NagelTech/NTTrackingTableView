@@ -1,6 +1,5 @@
 //
 //  NTTrackingTableView.m
-//  NTTrackingTableViewSample
 //
 //  Created by Ethan Nagel on 10/17/15.
 //  Copyright © 2015 Nagel Technologies. All rights reserved.
@@ -9,7 +8,8 @@
 #import "NTTrackingTableView.h"
 
 
-#define LOG(...) NSLog(__VA_ARGS__)
+//#define LOG(...) NSLog(__VA_ARGS__)
+#define LOG(...)
 
 
 @interface NTTrackingTableViewTransaction : NSObject
@@ -427,11 +427,10 @@
     else
     {
 
-#ifdef DEBUG
+#if 0    // For Debugging only... this doesn't seem to always work correctly :(
 
         if (!self.isDecelerating)
         {
-            // If we aren't decelerating
             [UIView performWithoutAnimation:^{
 
                 CGPoint beforePoint = [self convertPoint:[self rectForRowAtIndexPath:_currentTransaction.beforeAnchorIndexPath].origin toView:self.superview];
@@ -443,7 +442,7 @@
                 CGFloat actualDelta = afterPoint.y - beforePoint.y;
 
                 if (delta != actualDelta)
-                    NSLog(@"UH OH contentOffsetDelta returned %f but value should have been %f (off by %f)", delta, actualDelta, actualDelta - delta);
+                    LOG(@"UH OH contentOffsetDelta returned %f but value should have been %f (off by %f)", delta, actualDelta, actualDelta - delta);
 
                 CGPoint contentOffset = CGPointMake(self.contentOffset.x, self.contentOffset.y + delta);
                 self.contentOffset = contentOffset;
@@ -465,8 +464,7 @@
     }
 
     // debugging
-
-    [self selectRowAtIndexPath:_currentTransaction.afterAnchorIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+    // [self selectRowAtIndexPath:_currentTransaction.afterAnchorIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
     
     _currentTransaction = nil;
 }
