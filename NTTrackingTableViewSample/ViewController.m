@@ -53,7 +53,7 @@
 
 @implementation ViewController
 {
-    NSMutableArray *_items;
+    NSMutableArray *_sections;
 }
 
 
@@ -62,14 +62,22 @@
 
 - (void)commonInit
 {
-    _items = [[NSMutableArray alloc] init];
+    _sections = [[NSMutableArray alloc] init];
 
-    for(int index=0; index< 100; index++)
-        [_items addObject:[CellInfo cellInfoWithTitle:@"Original item"]];
+    for(int section=0; section<10; section++)
+    {
+        NSMutableArray *items = [NSMutableArray array];
 
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Insert Stuff" style:UIBarButtonItemStylePlain target:self action:@selector(insertStuff)];
+        for(int index=0; index<10; index++)
+            [items addObject:[CellInfo cellInfoWithTitle:@"Original item"]];
 
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Delete Stuff" style:UIBarButtonItemStylePlain target:self action:@selector(deleteStuff)];
+        [_sections addObject:items];
+    }
+
+//    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Insert Row" style:UIBarButtonItemStylePlain target:self action:@selector(insertRow)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Insert Section" style:UIBarButtonItemStylePlain target:self action:@selector(insertSection)];
+
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Delete Rows" style:UIBarButtonItemStylePlain target:self action:@selector(deleteRows)];
 }
 
 
@@ -108,45 +116,74 @@
 }
 
 
-- (void)insertRows:(NSArray *)rows atIndex:(NSUInteger)index
+- (void)insertItem:(CellInfo *)item atIndexPath:(NSIndexPath *)indexPath
 {
-    NSRange range = NSMakeRange(index, rows.count);
+    NSMutableArray *items = _sections[indexPath.section];
 
-    [_items insertObjects:rows atIndexes:[NSIndexSet indexSetWithIndexesInRange:range]];
-    [self.tableView insertRowsAtIndexPaths:[self indexPathsInSection:0 range:range] withRowAnimation:UITableViewRowAnimationFade];
+    [items insertObject:item atIndex:indexPath.row];
+    [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
 }
 
 
-- (void)deleteRow:(NSUInteger)index
+- (void)deleteIndexPath:(NSIndexPath *)indexPath
 {
-    [_items removeObjectAtIndex:index];
-    [self.tableView deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
+    NSMutableArray *items = _sections[indexPath.section];
+
+    [items removeObjectAtIndex:indexPath.row];
+    [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
 }
 
-- (void)insertStuff
+- (void)insertRow
 {
     [self.tableView beginUpdates];
 
     CellInfo *newCell = [CellInfo cellInfoWithTitle:@"Inserted Item"];
 
-    [self insertRows:@[newCell] atIndex:5];
+    [self insertItem:newCell atIndexPath:[NSIndexPath indexPathForRow:2 inSection:2]];
 
     [self.tableView endUpdates];
 }
 
 
-- (void)deleteStuff
+- (void)deleteRows
 {
     [self.tableView beginUpdates];
 
-    CellInfo *first = _items.firstObject;
-    for(NSInteger index=_items.count-1; index>=0; index -= 1)
-    {
-        CellInfo *item = _items[index];
+    __block CellInfo *first = nil;
 
-        if ([item.color isEqual:first.color])
-            [self deleteRow:index];
-    }
+    [_sections enumerateObjectsUsingBlock:^(NSMutableArray *items, NSUInteger idx, BOOL * _Nonnull stop) {
+        if (items.count)
+        {
+            first = items.firstObject;
+            *stop = YES;
+        }
+    }];
+
+    [_sections enumerateObjectsUsingBlock:^(NSMutableArray *items, NSUInteger section, BOOL * _Nonnull stop) {
+        for(NSInteger index=items.count-1; index>=0; index -= 1)
+        {
+            CellInfo *item = items[index];
+
+            if ([item.color isEqual:first.color])
+                [self deleteIndexPath:[NSIndexPath indexPathForRow:index inSection:section]];
+        }
+    }];
+
+    [self.tableView endUpdates];
+}
+
+
+- (void)insertSection
+{
+    NSMutableArray *items = [NSMutableArray array];
+
+    for(int index=0; index<5; index++)
+        [items addObject:[CellInfo cellInfoWithTitle:@"Inserted Section"]];
+
+    [self.tableView beginUpdates];
+
+    [_sections insertObject:items atIndex:1];
+    [self.tableView insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
 
     [self.tableView endUpdates];
 }
@@ -168,19 +205,21 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 1;
+    return _sections.count;
 }
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _items.count;
+    NSMutableArray *items = _sections[section];
+    return items.count;
 }
 
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    CellInfo *cellInfo = _items[indexPath.row];
+    NSMutableArray *items = _sections[indexPath.section];
+    CellInfo *cellInfo = items[indexPath.row];
 
     return cellInfo.height;
 }
@@ -196,7 +235,8 @@
     if (!cell)
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:REUSE_IDENTIFIER];
 
-    CellInfo *cellInfo = _items[indexPath.row];
+    NSMutableArray *items = _sections[indexPath.section];
+    CellInfo *cellInfo = items[indexPath.row];
 
     cell.textLabel.text = cellInfo.title;
     cell.contentView.backgroundColor = cellInfo.color;
